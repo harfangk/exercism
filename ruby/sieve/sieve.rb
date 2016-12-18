@@ -7,23 +7,18 @@ class Sieve
     @up_to_n = up_to_n
   end
 
-  def primes
+  def primes(target_array = (2..@up_to_n).to_a, result_array = [])
     if @up_to_n < 2
-      return []
+      return result_array
     end
 
-    find_primes((2..@up_to_n).to_a, [])
-  end
-
-  private
-  def find_primes(target_array, prime_number_array)
     if target_array.size == 1
-      return prime_number_array.concat(target_array)
+      return result_array.concat(target_array)
     end
 
     prime = target_array.first
-    new_prime_number_array = prime_number_array << prime
+    new_result_array = result_array << prime
     remaining_target_array = target_array.reject { |n| n % prime == 0 }
-    find_primes(remaining_target_array, new_prime_number_array)
+    primes(remaining_target_array, new_result_array)
   end
 end
