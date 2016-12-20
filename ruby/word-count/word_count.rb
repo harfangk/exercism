@@ -8,12 +8,15 @@ class Phrase
   end
 
   def word_count
+    # Define words that have unaccented alphabet letters, numbers, underscores, 
+    # and apostrophe and hyphen when they are used between previously described characters
+    # as proper words to be counted.
+    proper_words = /\w+['-]\w+|\w+/
     by_comma_and_space = /,\s|,|\s/
-    punctuations = /[\[\]\,!.@#$%^&*();:?-]/
-    surruonding_quotation_marks = /\A'(.*)'\Z/
+
     @text.downcase.split(by_comma_and_space).reduce(Hash.new(0)) do |result_hash, word|
-      cleaned_word = word.gsub(punctuations).gsub(surruonding_quotation_marks, '\1')
-      result_hash[cleaned_word] += 1
+      proper_word = word.match(proper_words)[0]
+      result_hash[proper_word] += 1
       result_hash
     end
   end
