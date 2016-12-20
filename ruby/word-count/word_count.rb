@@ -8,10 +8,11 @@ class Phrase
   end
 
   def word_count
-    # Define words that have unaccented alphabet letters, numbers, underscores, 
-    # and apostrophe and hyphen when they are used between previously described characters
-    # as proper words to be counted.
-    proper_words = /\w+['-]\w+|\w+/
+    # A proper word can be a combination of:
+    # extended latin alphabet letters, numbers, ', - 
+    # e.g. don't, he-who-must-not-be-named, ISO-6689, Khlûl-hloo
+    # Words that begin or end with ', i.e. ol', runnin', 'tis, are not covered.
+    proper_words = /([A-Za-zÀ-ɏ0-9]+[-']?)*[A-Za-zÀ-ɏ0-9]+/
     by_comma_and_space = /,\s|,|\s/
 
     @text.downcase.split(by_comma_and_space).reduce(Hash.new(0)) do |result_hash, word|
