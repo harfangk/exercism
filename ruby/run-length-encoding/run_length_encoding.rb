@@ -4,10 +4,10 @@ end
 
 class RunLengthEncoding
   def self.encode(input) 
-    split_by_repeated_characters = input.each_char.chunk { |n| n }
-    split_by_repeated_characters.reduce("") do |result, chunked_array|
-        if chunked_array[1].size > 1
-          result << chunked_array[1].size.to_s
+    array_of_repeated_characters = input.each_char.slice_when {|preceding, current| preceding != current }
+    array_of_repeated_characters.reduce("") do |result, chunked_array|
+        if chunked_array.size > 1
+          result << chunked_array.size.to_s
         end
         result << chunked_array[0]
     end
