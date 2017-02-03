@@ -16,6 +16,7 @@ class School
   end
 
   def students_by_grade
-    @student
+    grades = @students.reduce([]) {|memo, s| memo << s[:grade]}.uniq.sort
+    grades.map {|g| {grade: g, students: students(g)}}
   end
 end
