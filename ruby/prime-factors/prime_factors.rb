@@ -1,23 +1,30 @@
 class PrimeFactors
-  def self.for(i)
-    if i == 1
+  def self.for(n)
+    if n == 1
       return []
     end
 
-    PrimeFactors.do_for(i, 2, [])
-  end
+    current_n = n
+    factors = []
+    i = 2
 
-  def self.do_for(i, current_factor, factors)
-    if i == current_factor
-      return factors << current_factor
+    while i == 2
+      if current_n % i == 0
+        factors << i
+        current_n = current_n / i
+      else
+        i = 3
+      end
     end
 
-    if i % current_factor == 0
-      new_factors = factors << current_factor
-      new_i = i / current_factor
-      do_for(new_i, current_factor, new_factors)
-    else
-      do_for(i, current_factor + 1, factors)
+    while i <= current_n
+      if current_n % i == 0
+        factors << i
+        current_n = current_n / i
+      else
+        i += 2
+      end
     end
+    return factors
   end
 end
