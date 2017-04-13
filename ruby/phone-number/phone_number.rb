@@ -2,7 +2,7 @@ class PhoneNumber
   attr_accessor :number, :area_code
 
   def initialize(s)
-    if has_prohibited_characters(s)
+    if has_invalid_characters(s)
       @number = '0000000000'
       @area_code = '000'
       return
@@ -10,13 +10,13 @@ class PhoneNumber
 
     digit_only_s = s.gsub(/[\D]/, '')
 
-    if digit_only_s.length < 10 || digit_only_s.length > 11
+    if has_invalid_length_of_digits(digit_only_s) 
       @number = '0000000000'
       @area_code = '000'
       return
     end
 
-    if digit_only_s.length == 11 && digit_only_s[0] == '1'
+    if has_us_country_code(digit_only_s)
       @number = digit_only_s.slice(1, digit_only_s.length)
     elsif digit_only_s.length == 10
       @number = digit_only_s
@@ -26,8 +26,16 @@ class PhoneNumber
     @area_code = @number.slice(0, 3)
   end
 
-  def has_prohibited_characters(s)
+  def has_invalid_characters(s)
     s =~ /[^\d\.\-\ \(\)]/
+  end
+
+  def has_invalid_length_of_digits(s)
+    s.length < 10 || s.length > 11
+  end
+
+  def has_us_country_code(s)
+    s.length == 11 && s[0] == '1'
   end
 
   def to_s
