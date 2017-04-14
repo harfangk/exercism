@@ -5,6 +5,7 @@ end
 class Game
   def initialize
     @concluded_frames = []
+    @scoring_completed_frames = []
     @current_frame = nil
   end
 
@@ -28,7 +29,8 @@ class Game
     if is_game_unstarted_or_unfinished?
       raise Game::BowlingError
     end
-    @concluded_frames.map(&:score).reduce(&:+)
+
+    @scoring_completed_frames.map(&:score).reduce(&:+)
   end
 
   def conclude_frame(frame)
@@ -36,12 +38,17 @@ class Game
     @current_frame = nil
   end
 
+  def completed_scoring_frame(frame)
+    @scoring_completed_frames << frame
+    @concluded_frames.delete_if { |f| f.frame_count == frame.frame_count }
+  end
+
   def is_pin_count_invalid?(pins)
     pins < 0 || pins > 10
   end
 
   def is_game_unstarted_or_unfinished?
-    @concluded_frames.length == 0 || @concluded_frames.length < 10
+    @scoring_completed_frames.length == 0 || @scoring_completed_frames.length < 10
   end
 end
 
@@ -77,7 +84,13 @@ class Frame
 
   def add_score(pins)
     if !scoring_completed? 
+      if is_final_frame_score_invalid?
+        raise Game::BowlingError
+      end
       @scores << pins
+      if scoring_completed?
+        @game.completed_scoring_frame(self)
+      end
     end
   end
 
@@ -109,6 +122,12 @@ class Frame
 
   def are_pin_counts_invalid?
     @knocked_down_pins.length == 2 && @knocked_down_pins.reduce(&:+) > 10
+  end
+
+  def is_final_frame_score_invalid?
+    if frame_count == 10
+      if @scores 
+    end
   end
 end
 
