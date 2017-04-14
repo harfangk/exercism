@@ -3,67 +3,57 @@ module BookKeeping
 end
 
 class Game
-  attr_accessor :record_keeper
-
   def initialize
-    @record_keeper = RecordKeeper.new(self)
+    @concluded_frames = []
+    @current_frame = nil
   end
 
   def roll(pins)
-    @record_keeper.process_roll(pins)
+    if is_pin_count_invalid?(pins)
+      raise Game::BowlingError
+    end
+
+    if @current_frame == nil && @concluded_frames.length < 10
+      @current_frame = Frame.new(self, @concluded_frames.length + 1)
+    end
+    
+    @concluded_frames.each { |f| f.add_score(pins) }
+
+    if @current_frame
+      @current_frame.add_knocked_down_pins(pins)
+    end
   end
 
   def score
-    @record_keeper.calculate_score
-  end
-end
-
-class RecordKeeper
-  attr_reader :game, :frames_with_incomplete_score, :scored_frames, :current_frame, :frame_count
-
-  def initialize(game)
-    @game = game
-    @frames_with_incomplete_score = []
-    @scored_frames = []
-    @current_frame = nil
-    @frame_count = 0
-  end
-
-  def process_roll(pins)
-    unless @current_frame
-      @frame_count += 1
-      @current_frame = Frame.new(@record_keeper, @frame_count)
+    if is_game_unstarted_or_unfinished?
+      raise Game::BowlingError
     end
-    
-    @current_frame.add_knocked_down_pins(pins)
-    @frames_with_incomplete_score.each { |f| f.add_score(pins) }
-  end
-
-  def calculate_score
-    @scored_frames.map(:score).reduce(:+)
+    @concluded_frames.map(&:score).reduce(&:+)
   end
 
   def conclude_frame(frame)
-    @frames_with_incomplete_score << frame
+    @concluded_frames << frame
     @current_frame = nil
   end
 
-  def finished_scoring(frame)
-    scored_frame = @frames_with_incomplete_score.find { |f| f.equal?(frame) }
-    @scored_frames << scored_frame
-    @frames_with_incomplete_score.delete_if { |f| f.equal?(frame) }
+  def is_pin_count_invalid?(pins)
+    pins < 0 || pins > 10
+  end
+
+  def is_game_unstarted_or_unfinished?
+    @concluded_frames.length == 0 || @concluded_frames.length < 10
   end
 end
 
 class Frame
-  attr_accessor :record_keeper, :knocked_down_pins, :scores, :frame_type
+  attr_accessor :game, :knocked_down_pins, :scores, :frame_type, :frame_count
 
-  def initialize(record_keeper, frame_count)
-    @record_keeper = record_keeper
+  def initialize(game, frame_count)
+    @game = game
+    @frame_count = frame_count
     @knocked_down_pins = []
     @scores = []
     @frame_type = "undecided"
-    @frame_count = frame_count
   end
 
   def score
@@ -72,35 +62,35 @@ class Frame
 
   def add_knocked_down_pins(pins)
     @knocked_down_pins << pins
-    @scores << pins
+
+    if are_pin_counts_invalid?
+      raise Game::BowlingError
+    end
 
     if concluded?
       evaluate_current_frame
-      @record_keeper.conclude_frame(self)
+      @game.conclude_frame(self)
     end
+
+    add_score(pins)
   end
 
   def add_score(pins)
-    @scores << pins
-    if scoring_completed?
-      @record_keeper.finished_scoring(self)
+    if !scoring_completed? 
+      @scores << pins
     end
   end
 
   private
 
   def concluded?
-    if @frame_count == 10
-      (@knocked_down_pins.length == 2 && @knocked_down_pins.reduce(:+) < 10) || @knocked_down_pins.length == 3
-    else
-      @knocked_down_pins.first == 10 || @knocked_down_pins.length == 2
-    end
+    @knocked_down_pins.first == 10 || @knocked_down_pins.length == 2
   end
 
   def evaluate_current_frame
     if @knocked_down_pins.first == 10
       @frame_type = "strike"
-    elsif @knocked_down_pins.reduce(:+) == 10
+    elsif @knocked_down_pins.reduce(&:+) == 10
       @frame_type = "spare"
     else
       @frame_type = "open"
@@ -116,4 +106,11 @@ class Frame
       false
     end
   end
+
+  def are_pin_counts_invalid?
+    @knocked_down_pins.length == 2 && @knocked_down_pins.reduce(&:+) > 10
+  end
+end
+
+class Game::BowlingError < StandardError
 end
