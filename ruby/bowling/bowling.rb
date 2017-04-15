@@ -92,9 +92,7 @@ class Frame
   end
 
   def add_score(pins)
-    if !scoring_completed?
-      @scores << pins
-    end
+    @scores << pins
   end
 
   def concluded?
@@ -138,27 +136,24 @@ class FinalFrame < Frame
   end
 
   def add_score(pins)
-    if !scoring_completed?
-      @scores << pins
-      if scoring_completed?
-        validate_final_frame_score
-      end
+    if is_score_invalid?(pins)
+      raise Game::BowlingError
     end
+
+    @scores << pins
   end
 
-  def validate_final_frame_score
-    case @frame_type
-    when "open"
-      if @scores.length > 2
-        raise Game::BowlingError
-      end
-    when "spare"
-      if (@scores[0] + @scores[1]) > 10 || @scores[2] > 10
-        raise Game::BowlingError
-      end
-    when "strike"
-      if @scores[1] < 10 && (@scores[1] + @scores[2]) > 10 
-        raise Game::BowlingError
+  def is_score_invalid?(pins)
+    if @scores.length < 2
+      false
+    else
+      case @frame_type
+      when "open"
+        @scores.reduce(&:+) > 9
+      when "spare"
+        @scores.reduce(&:+) != 10
+      when "strike"
+        @scores.last < 10 && (@scores.last + pins > 10)
       end
     end
   end
