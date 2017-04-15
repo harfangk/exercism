@@ -40,7 +40,7 @@ class Game
       raise Game::BowlingError
     end
 
-    finished_frames.map(&:score).reduce(&:+)
+    finished_frames.map(&:score).reduce(:+)
   end
 
   def conclude_current_frame
@@ -114,7 +114,7 @@ class Frame
   def evaluate_frame_type
     if @knocked_down_pins.first == 10
       @frame_type = "strike"
-    elsif @knocked_down_pins.reduce(&:+) == 10
+    elsif @knocked_down_pins.reduce(:+) == 10
       @frame_type = "spare"
     else
       @frame_type = "open"
@@ -149,9 +149,9 @@ class FinalFrame < Frame
     else
       case @frame_type
       when "open"
-        @scores.reduce(&:+) > 9
+        @scores.reduce(:+) > 9
       when "spare"
-        @scores.reduce(&:+) != 10
+        @scores.reduce(:+) != 10
       when "strike"
         @scores.last < 10 && (@scores.last + pins > 10)
       end
