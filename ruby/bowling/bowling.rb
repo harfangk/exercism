@@ -79,11 +79,11 @@ class Frame
   end
 
   def add_knocked_down_pins(pins)
-    @knocked_down_pins << pins
-
-    if are_pin_counts_invalid?
+    if are_pin_counts_invalid?(pins)
       raise Game::BowlingError
     end
+
+    @knocked_down_pins << pins
 
     if concluded?
       evaluate_frame_type
@@ -127,8 +127,8 @@ class Frame
     @game.conclude_current_frame
   end
 
-  def are_pin_counts_invalid?
-    @knocked_down_pins.length == 2 && @knocked_down_pins.reduce(&:+) > 10
+  def are_pin_counts_invalid?(pins)
+    @knocked_down_pins.length == 1 && (@knocked_down_pins[0] + pins > 10)
   end
 end
 
