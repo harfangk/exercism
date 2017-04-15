@@ -37,6 +37,12 @@ class Game
     finished_frames.map(&:score).reduce(&:+)
   end
 
+  def conclude_current_frame
+    @current_frame = nil
+  end
+
+  private
+
   def frames_with_incomplete_scoring
     @frames.reject { |f| f.scoring_completed? }
   end
@@ -44,12 +50,6 @@ class Game
   def finished_frames
     @frames.select { |f| f.scoring_completed? && f.concluded? }
   end
-
-  def conclude_current_frame
-    @current_frame = nil
-  end
-
-  private
 
   def is_pin_count_invalid?(pins)
     !(0..10).include?(pins)
@@ -61,8 +61,6 @@ class Game
 end
 
 class Frame
-  attr_reader :frame_count
-
   def initialize(game, frame_count)
     @game = game
     @frame_count = frame_count
