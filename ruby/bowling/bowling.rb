@@ -20,7 +20,11 @@ class Game
     end
 
     if @current_frame == nil && @frames.length < MAX_FRAME_COUNT
-      @current_frame = Frame.new(self, @frames.length + 1)
+      if @frames.length == MAX_FRAME_COUNT - 1
+        @current_frame = FinalFrame.new(self)
+      else
+        @current_frame = Frame.new(self)
+      end
       @frames << @current_frame
     end
 
@@ -63,9 +67,8 @@ class Game
 end
 
 class Frame
-  def initialize(game, frame_count)
+  def initialize(game)
     @game = game
-    @frame_count = frame_count
     @knocked_down_pins = []
     @scores = []
     @frame_type = "undecided"
@@ -91,9 +94,6 @@ class Frame
   def add_score(pins)
     if !scoring_completed?
       @scores << pins
-      if @frame_count == 10 && scoring_completed?
-        validate_final_frame_score
-      end
     end
   end
 
@@ -130,14 +130,19 @@ class Frame
   def are_pin_counts_invalid?
     @knocked_down_pins.length == 2 && @knocked_down_pins.reduce(&:+) > 10
   end
+end
 
-  def is_final_frame_score_invalid?(pins)
-    if @scores.length < 2
-      return false
-    elsif @scores[0] == 10 && @scores[1] == 10
-      false
-    elsif @scores[0] == 10 && @scores[1] < 10
-      @scores[1] + @scores[2] > 10
+class FinalFrame < Frame
+  def initialize(game)
+    super(game)
+  end
+
+  def add_score(pins)
+    if !scoring_completed?
+      @scores << pins
+      if scoring_completed?
+        validate_final_frame_score
+      end
     end
   end
 
