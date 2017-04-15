@@ -143,6 +143,8 @@ class FinalFrame < Frame
     @scores << pins
   end
 
+  private
+
   def is_score_invalid?(pins)
     if @scores.length < 2
       false
