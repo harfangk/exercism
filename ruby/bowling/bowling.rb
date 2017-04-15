@@ -62,7 +62,7 @@ class Game
   end
 
   def is_game_unstarted_or_unfinished?
-    @frames.length == 0 || finished_frames.length < MAX_FRAME_COUNT
+    finished_frames.length < MAX_FRAME_COUNT
   end
 end
 
