@@ -4,8 +4,7 @@ end
 
 class Game
   def initialize
-    @concluded_frames = []
-    @scoring_completed_frames = []
+    @frames = []
     @current_frame = nil
   end
 
@@ -14,15 +13,20 @@ class Game
       raise Game::BowlingError
     end
 
-    if @current_frame == nil && @concluded_frames.length < 10
-      @current_frame = Frame.new(self, @concluded_frames.length + 1)
+    if finished_frames.length >= 10
+      raise Game::BowlingError
     end
-    
-    @concluded_frames.each { |f| f.add_score(pins) }
+
+    if @current_frame == nil && @frames.length < 10
+      @current_frame = Frame.new(self, @frames.length + 1)
+      @frames << @current_frame
+    end
 
     if @current_frame
       @current_frame.add_knocked_down_pins(pins)
     end
+
+    frames_with_incomplete_scoring.each { |f| f.add_score(pins) }
   end
 
   def score
@@ -30,30 +34,34 @@ class Game
       raise Game::BowlingError
     end
 
-    @scoring_completed_frames.map(&:score).reduce(&:+)
+    finished_frames.map(&:score).reduce(&:+)
   end
 
-  def conclude_frame(frame)
-    @concluded_frames << frame
+  def frames_with_incomplete_scoring
+    @frames.reject { |f| f.scoring_completed? }
+  end
+
+  def finished_frames
+    @frames.select { |f| f.scoring_completed? && f.concluded? }
+  end
+
+  def conclude_current_frame
     @current_frame = nil
   end
 
-  def completed_scoring_frame(frame)
-    @scoring_completed_frames << frame
-    @concluded_frames.delete_if { |f| f.frame_count == frame.frame_count }
-  end
+  private
 
   def is_pin_count_invalid?(pins)
-    pins < 0 || pins > 10
+    !(0..10).include?(pins)
   end
 
   def is_game_unstarted_or_unfinished?
-    @scoring_completed_frames.length == 0 || @scoring_completed_frames.length < 10
+    @frames.length == 0 || finished_frames.length < 10
   end
 end
 
 class Frame
-  attr_accessor :game, :knocked_down_pins, :scores, :frame_type, :frame_count
+  attr_reader :frame_count
 
   def initialize(game, frame_count)
     @game = game
@@ -75,39 +83,22 @@ class Frame
     end
 
     if concluded?
-      evaluate_current_frame
-      @game.conclude_frame(self)
+      evaluate_frame_type
+      conclude_frame
     end
-
-    add_score(pins)
   end
 
   def add_score(pins)
-    if !scoring_completed? 
-      if is_final_frame_score_invalid?
-        raise Game::BowlingError
-      end
+    if !scoring_completed?
       @scores << pins
-      if scoring_completed?
-        @game.completed_scoring_frame(self)
+      if @frame_count == 10 && scoring_completed?
+        validate_final_frame_score
       end
     end
   end
-
-  private
 
   def concluded?
     @knocked_down_pins.first == 10 || @knocked_down_pins.length == 2
-  end
-
-  def evaluate_current_frame
-    if @knocked_down_pins.first == 10
-      @frame_type = "strike"
-    elsif @knocked_down_pins.reduce(&:+) == 10
-      @frame_type = "spare"
-    else
-      @frame_type = "open"
-    end
   end
 
   def scoring_completed?
@@ -120,13 +111,50 @@ class Frame
     end
   end
 
+  private
+
+  def evaluate_frame_type
+    if @knocked_down_pins.first == 10
+      @frame_type = "strike"
+    elsif @knocked_down_pins.reduce(&:+) == 10
+      @frame_type = "spare"
+    else
+      @frame_type = "open"
+    end
+  end
+
+  def conclude_frame
+    @game.conclude_current_frame
+  end
+
   def are_pin_counts_invalid?
     @knocked_down_pins.length == 2 && @knocked_down_pins.reduce(&:+) > 10
   end
 
-  def is_final_frame_score_invalid?
-    if frame_count == 10
-      if @scores 
+  def is_final_frame_score_invalid?(pins)
+    if @scores.length < 2
+      return false
+    elsif @scores[0] == 10 && @scores[1] == 10
+      false
+    elsif @scores[0] == 10 && @scores[1] < 10
+      @scores[1] + @scores[2] > 10
+    end
+  end
+
+  def validate_final_frame_score
+    case @frame_type
+    when "open"
+      if @scores.length > 2
+        raise Game::BowlingError
+      end
+    when "spare"
+      if (@scores[0] + @scores[1]) > 10 || @scores[2] > 10
+        raise Game::BowlingError
+      end
+    when "strike"
+      if @scores[1] < 10 && (@scores[1] + @scores[2]) > 10 
+        raise Game::BowlingError
+      end
     end
   end
 end
