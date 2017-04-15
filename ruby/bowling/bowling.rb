@@ -3,6 +3,8 @@ module BookKeeping
 end
 
 class Game
+  MAX_FRAME_COUNT = 10
+
   def initialize
     @frames = []
     @current_frame = nil
@@ -13,11 +15,11 @@ class Game
       raise Game::BowlingError
     end
 
-    if finished_frames.length >= 10
+    if finished_frames.length >= MAX_FRAME_COUNT
       raise Game::BowlingError
     end
 
-    if @current_frame == nil && @frames.length < 10
+    if @current_frame == nil && @frames.length < MAX_FRAME_COUNT
       @current_frame = Frame.new(self, @frames.length + 1)
       @frames << @current_frame
     end
@@ -56,7 +58,7 @@ class Game
   end
 
   def is_game_unstarted_or_unfinished?
-    @frames.length == 0 || finished_frames.length < 10
+    @frames.length == 0 || finished_frames.length < MAX_FRAME_COUNT
   end
 end
 
