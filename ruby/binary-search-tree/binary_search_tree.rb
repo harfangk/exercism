@@ -3,16 +3,12 @@ class Bst
 
   VERSION = 1
 
-  attr_reader :left, :right
+  attr_reader :left, :right, :data
 
-  def initialize(value)
+  def initialize(data)
     @left = nil
     @right = nil
-    @value = value
-  end
-
-  def data
-    @value
+    @data = data
   end
 
   def each
@@ -23,18 +19,18 @@ class Bst
     end
   end
 
-  def insert(value)
-    if value <= @value
+  def insert(data)
+    if data <= @data
       if @left
-        @left.insert(value)
+        @left.insert(data)
       else
-        @left = Bst.new(value)
+        @left = Bst.new(data)
       end
     else
       if @right
-        @right.insert(value)
+        @right.insert(data)
       else
-        @right = Bst.new(value)
+        @right = Bst.new(data)
       end
     end
   end
