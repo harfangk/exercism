@@ -6,10 +6,7 @@ class Clock
   attr_reader :h, :m
 
   def initialize(h, m)
-    new_m = m % 60
-    new_h = (h + (m / 60)) % 24
-    @h = new_h
-    @m = new_m
+    set_time(h, m)
   end
 
   def self.at(h, m)
@@ -27,10 +24,16 @@ class Clock
   end
 
   def +(m)
-    new_m = (@m + m) % 60
-    new_h = (@h + ((@m + m) / 60)) % 24
+    set_time(@h, @m + m)
+    self
+  end
+
+  private
+
+  def set_time(h, m)
+    new_m = m % 60
+    new_h = (h + (m / 60)) % 24
     @h = new_h
     @m = new_m
-    self
   end
 end
