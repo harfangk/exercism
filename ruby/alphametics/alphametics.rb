@@ -47,4 +47,23 @@ class Alphametics
       end
     int_array.join.to_i
   end
+
+  def self.candidate_hashes(input)
+    chars = Alphametics.used_chars(input)
+  end
+
+  def self.predicates(input)
+    initial_equation = input.gsub(/=/, "==")
+
+  end
+
+  def self.recurse(chars)
+    Alphametics.do_recurse(1, chars)
+  end
+
+  def self.do_recurse(current_depth, chars)
+    if current_depth == chars.length
+      return
+    end
+  end
 end
