@@ -8,28 +8,14 @@ class Alphametics
   end
 
   def self.solve_brute_force(input)
-    words = Alphametics.words(input)
-    result = words.last
-    numbers_to_add = words[0..-2]
-    chars = Alphametics.used_chars(input)
-    hash = Hash.new(0)
-    (0..9).each do |i0|
-      (0..9).each do |i1|
-        (0..9).each do |i2|
-          if (i0 == i1) || (i1 == i2)
-            next
-          end
-          chars.each_with_index do |c, index|
-            hash[c] = eval("i#{index}")
-          end
-          numbers_to_add_in_int = numbers_to_add.map {|s| Alphametics.word_to_number(s, hash) }
-          result_in_int = Alphametics.word_to_number(result, hash)
-          if numbers_to_add_in_int.reduce(:+) == result_in_int
-            return hash
-          end
-        end
+    initial_equation = input.gsub(/ = /, ' == ')
+    Alphametics.candidate_hashes(input).each do |hash|
+      substituted_equation = Alphametics.substitute_chars_with_values(initial_equation, hash)
+      if eval substituted_equation
+        return hash
       end
     end
+    {}
   end
 
   def self.used_chars(input)
@@ -40,30 +26,42 @@ class Alphametics
     input.scan(/\w+/)
   end
 
-  def self.word_to_number(word, word_to_int_hash)
-    int_array = 
-      word.chars.map do |c|
-        word_to_int_hash[c]
+  def self.substitute_chars_with_values(string, string_to_value_hash)
+    substituted_string =
+      string.chars.map do |c|
+        if string_to_value_hash[c]
+          string_to_value_hash[c]
+        else
+          c
+        end
       end
-    int_array.join.to_i
+    substituted_string.join
   end
 
   def self.candidate_hashes(input)
+    candidate_hashes = []
+    beginning_chars = Alphametics.beginning_chars(input)
     chars = Alphametics.used_chars(input)
+    arrays_with_distinct_values = (0..9).to_a.permutation(chars.length)
+    arrays_with_distinct_values.each do |values|
+      candidate_hash = chars.zip(values).to_h
+      if Alphametics.has_no_zero_as_beginning_chars?(candidate_hash, beginning_chars)
+        candidate_hashes << candidate_hash
+      end
+    end
+    candidate_hashes
   end
 
-  def self.predicates(input)
-    initial_equation = input.gsub(/=/, "==")
-
+  def self.beginning_chars(input)
+    words = Alphametics.words(input)
+    words.map { |w| w[0] }
   end
 
-  def self.recurse(chars)
-    Alphametics.do_recurse(1, chars)
-  end
-
-  def self.do_recurse(current_depth, chars)
-    if current_depth == chars.length
-      return
+  def self.has_no_zero_as_beginning_chars?(candidate_hash, beginning_chars)
+    beginning_chars.each do |c|
+      if candidate_hash[c] == 0
+        return false
+      end
     end
   end
 end
