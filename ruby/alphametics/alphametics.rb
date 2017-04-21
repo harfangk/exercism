@@ -9,10 +9,7 @@ class Alphametics
 
   def self.solve_brute_force(input)
     initial_equation = input.gsub(/ = /, ' == ')
-    hash_of_candidate_values = Alphametics.hash_of_candidate_values(input)
-    filtered_hash_of_candidate_values = Alphametics.remove_initial_zero_from_candidate_values(hash_of_candidate_values, input)
-    candidate_hashes = Alphametics.construct_hashes_of_candidate_solutions(filtered_hash_of_candidate_values, input)
-    candidate_hashes.each do |hash|
+    Alphametics.candidate_hashes(input).each do |hash|
       substituted_equation = Alphametics.substitute_chars_with_values(initial_equation, hash)
       if eval substituted_equation
         return hash
@@ -41,29 +38,30 @@ class Alphametics
     substituted_string.join
   end
 
+  def self.candidate_hashes(input)
+    candidate_hashes = []
+    beginning_chars = Alphametics.beginning_chars(input)
+    chars = Alphametics.used_chars(input)
+    arrays_with_distinct_values = (0..9).to_a.permutation(chars.length)
+    arrays_with_distinct_values.each do |values|
+      candidate_hash = chars.zip(values).to_h
+      if Alphametics.has_no_zero_as_beginning_chars?(candidate_hash, beginning_chars)
+        candidate_hashes << candidate_hash
+      end
+    end
+    candidate_hashes
+  end
+
   def self.beginning_chars(input)
     words = Alphametics.words(input)
-    words.map { |w| w[0] }.uniq
+    words.map { |w| w[0] }
   end
 
-  def self.hash_of_candidate_values(input)
-    chars = Alphametics.used_chars(input)
-    chars.map { |c| [c, (0..9).to_a] }.to_h
-  end
-
-  def self.remove_initial_zero_from_candidate_values(hash_of_candidate_values, input)
-    beginning_chars = Alphametics.beginning_chars(input)
+  def self.has_no_zero_as_beginning_chars?(candidate_hash, beginning_chars)
     beginning_chars.each do |c|
-      hash_of_candidate_values[c].delete(0)
+      if candidate_hash[c] == 0
+        return false
+      end
     end
-    hash_of_candidate_values
-  end
-
-  def self.construct_hashes_of_candidate_solutions(hash_of_candidate_values, input)
-    chars = Alphametics.used_chars(input)
-    array_of_candidate_values = hash_of_candidate_values.values
-    head, *rest = array_of_candidate_values
-    potential_solutions = head.product(*rest).select { |array| array == array.uniq }
-    potential_solutions.map { |s| chars.zip(s).to_h }
   end
 end
