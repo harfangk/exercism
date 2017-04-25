@@ -6,17 +6,20 @@ class Bst
   attr_reader :left, :right, :data
 
   def initialize(data)
-    @left = nil
-    @right = nil
     @data = data
   end
 
-  def each
-    if block_given?
-      to_a.each { |bst| yield(bst) }
-    else
-      enum_for(:each)
-    end
+  def each(&block)
+    return enum_for(:each) unless block_given?
+
+    left.each(&block) if left
+    block.call(self.data)
+    right.each(&block) if right
+    self
+  end
+
+  def <=>(other_bst)
+    data <=> other_bst.data
   end
 
   def insert(data)
@@ -33,22 +36,5 @@ class Bst
         @right = Bst.new(data)
       end
     end
-  end
-
-  def to_a
-    do_to_a.flatten.map(&:data)
-  end
-
-  def do_to_a
-    result = [self]
-    if @left
-      result = @left.do_to_a + result
-    end
-
-    if @right
-      result = result + @right.do_to_a
-    end
-
-    result
   end
 end
