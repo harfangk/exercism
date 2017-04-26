@@ -2,7 +2,7 @@ class RailFenceCipher
   VERSION = 1
 
   def self.encode(plaintext, rail_rows)
-    if rail_rows == 1 || plaintext.empty?
+    if rail_rows <= 1 || plaintext.empty?
       return plaintext
     end
 
@@ -14,7 +14,7 @@ class RailFenceCipher
   end
 
   def self.decode(ciphertext, rail_rows)
-    if rail_rows == 1 || ciphertext.empty?
+    if rail_rows <= 1 || ciphertext.empty?
       return ciphertext
     end
 
@@ -25,22 +25,22 @@ class RailFenceCipher
 
   def self.indices_for_each_rail_row(cycle)
     all_indices =
-      (0..(cycle - 1)).to_a.repeated_combination(2).select do |x, y| 
+      (0...cycle).to_a.repeated_combination(2).select do |x, y| 
         (x + y) % cycle == 0
       end
     all_indices.map(&:uniq)
   end
 
   def self.split_plaintext_into_rows(plaintext_segments_by_cycle, char_indices, rail_rows)
-      (0..(rail_rows - 1)).map do |row|
-        ciphertext_for_row = ""
-        plaintext_segments_by_cycle.each do |segment|
-          char_indices[row].each do |char_index|
-            ciphertext_for_row += segment[char_index] if segment[char_index]
-          end
+    (0...rail_rows).map do |row|
+      ciphertext_for_row = ""
+      plaintext_segments_by_cycle.each do |segment|
+        char_indices[row].each do |char_index|
+          ciphertext_for_row += segment[char_index] if segment[char_index]
         end
-        ciphertext_for_row
       end
+      ciphertext_for_row
+    end
   end
 
   def self.calculate_length_of_each_row(ciphertext, rail_rows)
@@ -49,7 +49,7 @@ class RailFenceCipher
     last_segment_length = ciphertext.length % cycle
 
     row_text_length_hash = Hash.new(0)
-    (0..(rail_rows - 1)).each do |row|
+    (0...rail_rows).each do |row|
       if row == 0 || row == (cycle / 2) 
         row_text_length_hash[row] = complete_segments_count
       else
@@ -57,7 +57,7 @@ class RailFenceCipher
       end
     end
 
-    (0..(last_segment_length - 1)).each do |row|
+    (0...last_segment_length).each do |row|
       if row <= (cycle / 2)
         row_text_length_hash[row] += 1
       else
