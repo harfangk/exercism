@@ -1,5 +1,8 @@
 class RailFenceCipher
   def self.encode(plaintext, rail_rows)
+    if rail_rows == 1 || plaintext.empty?
+      return plaintext
+    end
     cycle = rail_rows * 2 - 2
     plaintext_segments = plaintext.scan(/.{1,#{cycle}}/)
     indices = RailFenceCipher.indices_for_each_rail_row(cycle)
@@ -19,7 +22,9 @@ class RailFenceCipher
   end
 
   def self.decode(ciphertext, rail_rows)
-
+    if rail_rows == 1 || ciphertext.empty?
+      return ciphertext
+    end
   end
 
   def self.indices_for_each_rail_row(cycle)
