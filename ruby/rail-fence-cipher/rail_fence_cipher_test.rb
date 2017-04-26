@@ -9,7 +9,6 @@ class RailFenceCipherTest < Minitest::Test
   end
 
   def test_encode_with_one_rail
-    skip
     assert_equal 'One rail, only one rail',
                  RailFenceCipher.encode('One rail, only one rail', 1)
   end
@@ -43,19 +42,16 @@ class RailFenceCipherTest < Minitest::Test
   end
 
   def test_decode_with_two_rails
-    skip
     assert_equal 'XOXOXOXOXOXOXOXOXO',
                  RailFenceCipher.decode('XXXXXXXXXOOOOOOOOO', 2)
   end
 
   def test_decode_with_three_rails
-    skip
     assert_equal 'THEDEVILISINTHEDETAILS',
                  RailFenceCipher.decode('TEITELHDVLSNHDTISEIIEA', 3)
   end
 
   def test_bookkeeping
-    skip
     assert_equal 1, RailFenceCipher::VERSION
   end
 end
