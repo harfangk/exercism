@@ -34,14 +34,19 @@ class Say
     end
 
     numbers_by_thousands = split_question_by_thousands
-    numbers_by_thousands.each_with_index.reject { |n, i| n.zero? }. map do |n, i|
+    reversed_numbers_by_thousands = numbers_by_thousands.reverse
+    reversed_numbers_in_english =
+      reversed_numbers_by_thousands.each_with_index.reject { |n, i| n.zero? }.map do |n, i|
       if i > 0
         "#{say_hundreds(n)} #{UNITS[i]}"
       else
         "#{say_hundreds(n)}"
       end
-    end.reverse.join(' ')
+    end
+    reversed_numbers_in_english.reverse.join(' ')
   end
+
+  private
 
   def say_hundreds(num)
     if num >= 1000
@@ -50,7 +55,7 @@ class Say
 
     quotient, remainder = num.divmod(100)
     
-    if remainder == 0 && quotient > 0
+    if quotient > 0 && remainder == 0
       "#{NUM_TO_ENGLISH[quotient]} hundred"
     elsif quotient > 0
       "#{NUM_TO_ENGLISH[quotient]} hundred #{say_tens(remainder)}"
@@ -66,13 +71,12 @@ class Say
        
     if NUM_TO_ENGLISH[num].nil?
       quotient, remainder = num.divmod(10)
+
       "#{NUM_TO_ENGLISH[quotient * 10]}-#{NUM_TO_ENGLISH[remainder]}"
     else
       NUM_TO_ENGLISH[num]
     end
   end
-
-  private
 
   def validate_range
     if question < 0 || question >= 1_000_000_000_000
@@ -83,11 +87,13 @@ class Say
   def split_question_by_thousands
     q = question
     result = []
+
     while q > 0
       quotient, remainder = q.divmod(1000)
       result << remainder
       q = quotient
     end
-    result
+
+    result.reverse
   end
 end
